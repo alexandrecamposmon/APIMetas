@@ -6,9 +6,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiMetas.Model;
+using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace ApiMetas.Controllers
 {
+
     [Route("api/[controller]")]
     [ApiController]
     public class UsuariosController : ControllerBase
@@ -24,6 +27,9 @@ namespace ApiMetas.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Usuario>>> GetUsuarios()
         {
+            //dataTable para testar executeReader
+            var dados = CreateCommand("select * from Usuarios", "Server=DESKTOP-2BN4VJQ;Database=MetasAPI;Trusted_Connection=True;MultipleActiveResultSets=true");
+
             return await _context.Usuarios.ToListAsync();
         }
 
@@ -73,6 +79,21 @@ namespace ApiMetas.Controllers
             return NoContent();
         }
 
+        private static DataTable CreateCommand(string queryString,
+        string connectionString)
+        {
+            using (SqlConnection connection = new SqlConnection(
+                       connectionString))
+            {
+                connection.Open();
+
+                SqlCommand command = new SqlCommand(queryString, connection);
+                SqlDataReader reader = command.ExecuteReader();
+                DataTable tabelaUsuario = new DataTable();
+                tabelaUsuario.Load(reader);
+                return tabelaUsuario;
+            }
+        }
         // POST: api/Usuarios
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
